@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Knight & Knave | Mobile Quest</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Fredoka:wght@600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold-bright: #ffd700;
+            --gold-border: #f3c252;
+            --wood-dark: #3a1e08;
+            --wood-mid: #5c3511;
+            --wood-light: #8c521f;
+            --stone-bg: #1d2530;
+            --stone-border: #3b495e;
+            --jewel-purple: linear-gradient(180deg, #b026ff 0%, #6e00b3 100%);
+            --jewel-green: linear-gradient(180deg, #5adb28 0%, #298205 100%);
+            --jewel-blue: linear-gradient(180deg, #00bfff 0%, #005f9e 100%);
+            --jewel-orange: linear-gradient(180deg, #ff9800 0%, #c66900 100%);
+            --text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            font-family: 'Fredoka', 'Nunito', sans-serif;
+            background-color: #080c14;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        #snowCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 30%, rgba(16, 42, 66, 0.6), rgba(5, 10, 20, 0.95));
+        }
+
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 12px;
+        }
+
+        .hidden { display: none !important; }
+        .hidden-lab { display: none !important; }
+
+        /* FANTASY BUTTONS - MOBILE FRIENDLY TOUCH TARGETS */
+        .fantasy-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: var(--text-shadow);
+            border: 3px solid #ffe082;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1c1005, 0 8px 15px rgba(0, 0, 0, 0.6);
+            transition: all 0.15s ease;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .fantasy-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #1c1005, 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary-play { background: var(--jewel-purple); border-color: #ffd700; font-size: 1.3rem; }
+        .btn-secondary-menu { background: var(--jewel-blue); border-color: #80deea; }
+        .btn-green-action { background: var(--jewel-green); border-color: #a5d6a7; font-size: 1.2rem; }
+
+        /* WOOD PANELS */
+        .wood-panel {
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-dark) 100%);
+            border: 4px solid #f3c252;
+            border-radius: 20px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+        }
+
+        .wood-header {
+            background: linear-gradient(180deg, #7c4315 0%, #4a2507 100%);
+            padding: 12px 16px;
+            border-bottom: 3px solid #f3c252;
+            text-align: center;
+        }
+
+        .wood-header h2 {
+            margin: 0;
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: var(--gold-bright);
+            text-shadow: var(--text-shadow);
+        }
+
+        .wood-body { padding: 16px; }
+
+        .stone-inset-box {
+            background: var(--stone-bg);
+            border: 2px solid var(--stone-border);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 12px 0;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stone-inset-box p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        /* SCREEN 1: INTRO */
+        .game-logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-subtitle {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid var(--gold-bright);
+            border-radius: 20px;
+            color: var(--gold-bright);
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .logo-title {
+            margin: 0;
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(180, 100, 255, 0.6), var(--text-shadow);
+            line-height: 1.1;
+        }
+        .gold-text { color: var(--gold-bright); }
+        .main-menu-panel { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; align-items: center; width: 100%; }
+
+        .battle-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 320px;
+        }
+        .preview-card {
+            background: rgba(20, 30, 48, 0.85);
+            border: 2px solid #3b495e;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .knight-preview { border-color: var(--gold-bright); }
+        .knave-preview { border-color: #b026ff; }
+        .spy-preview { border-color: #ff9800; }
+
+        .preview-icon { font-size: 1.8rem; }
+        .preview-info h3 { margin: 0; font-family: 'Cinzel', serif; color: var(--gold-bright); font-size: 1rem; }
+        .preview-info p { margin: 0; font-size: 0.8rem; color: #b0bec5; }
+
+        /* SCREEN 2: PROFILE */
+        #nameForm { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+        #nameForm label { font-family: 'Cinzel', serif; font-weight: 700; color: var(--gold-bright); font-size: 0.95rem; }
+        #playerName {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid var(--stone-border);
+            border-radius: 10px;
+            background: var(--stone-bg);
+            color: #ffffff;
+        }
+
+        .achievements-box {
+            margin-top: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--stone-border);
+        }
+        .achievements-box h3 { margin: 0 0 8px 0; font-family: 'Cinzel', serif; color: var(--gold-bright); font-size: 0.95rem; }
+        .achievements-grid { display: flex; flex-direction: column; gap: 6px; }
+        .achievement-badge {
+            padding: 6px 10px;
+            background: #202b3c;
+            border: 1px solid var(--stone-border);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #80deea;
+        }
+        .achievement-badge.locked { opacity: 0.4; filter: grayscale(1); }
+
+        /* SCREEN 3: MAP */
+        .map-nodes-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 10px;
+        }
+        .map-node {
+            width: 100%;
+            max-width: 280px;
+            padding: 12px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #37474f 0%, #102027 100%);
+            border: 3px solid var(--stone-border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+        }
+        .map-node.unlocked { border-color: var(--gold-bright); background: linear-gradient(180deg, #5d4037 0%, #260e04 100%); }
+        .node-icon { font-size: 2rem; }
+        .node-label { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold-bright); }
+        .map-connector { width: 4px; height: 16px; background: var(--stone-border); }
+
+        /* SCREEN 4: GAMEPLAY */
+        .game-screen { padding-bottom: 80px; padding-top: 10px; }
+        .game-layout { width: 100%; max-width: 600px; }
+        .board-panel { padding: 12px; }
+        .board-topbar { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--stone-border); padding-bottom: 10px; }
+
+        .icon-btn-back {
+            width: 42px; height: 42px;
+            background: var(--jewel-blue);
+            border: 2px solid #80deea;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .puzzle-title-area { text-align: center; }
+        .difficulty-tag { display: inline-block; padding: 2px 10px; background: rgba(255,215,0,0.2); border: 1px solid var(--gold-bright); border-radius: 15px; color: var(--gold-bright); font-size: 0.75rem; font-family: 'Cinzel', serif; }
+        .puzzle-title-area h2 { margin: 2px 0 0 0; font-family: 'Cinzel', serif; font-size: 1.2rem; color: #ffffff; }
+        .progress-display { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 900; color: var(--gold-bright); background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--stone-border); }
+
+        .characters-grid { display: flex; flex-direction: column; gap: 14px; margin: 15px 0; }
+        .character-card { background: linear-gradient(180deg, #2b3648 0%, #151c28 100%); border: 3px solid var(--stone-border); border-radius: 16px; padding: 14px; text-align: center; }
+        .portrait-circle { width: 70px; height: 70px; margin: 0 auto 8px auto; border-radius: 50%; border: 3px solid var(--gold-bright); background: radial-gradient(circle, #4a5970 0%, #1a2332 100%); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; }
+        .character-id { font-size: 0.75rem; color: #90a4ae; font-weight: 700; letter-spacing: 1px; }
+        .character-card h3 { margin: 2px 0 8px 0; font-family: 'Cinzel', serif; font-size: 1.3rem; color: var(--gold-bright); }
+        .speech-bubble { background: rgba(0,0,0,0.4); border: 1px dashed #455a64; border-radius: 10px; padding: 10px; margin-bottom: 12px; min-height: 55px; display: flex; align-items: center; justify-content: center; }
+        .speech-bubble p { margin: 0; font-size: 0.95rem; color: #ffffff; }
+        .verdict-buttons { display: flex; gap: 6px; }
+        .btn-choice { flex: 1; padding: 10px 2px; font-family: 'Fredoka', sans-serif; font-size: 0.85rem; font-weight: 700; border-radius: 8px; border: 2px solid #546e7a; background: #263238; color: #ffffff; cursor: pointer; }
+        .btn-choice.selected-knight { background: var(--jewel-green); border-color: #a5d6a7; }
+        .btn-choice.selected-knave { background: linear-gradient(180deg, #e53935 0%, #8e0000 100%); border-color: #ef9a9a; }
+        .btn-choice.selected-spy { background: var(--jewel-orange); border-color: #ffe082; }
+
+        .toggle-lab-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(180deg, #37474f 0%, #1c272c 100%);
+            border: 2px solid var(--gold-bright);
+            border-radius: 10px;
+            color: var(--gold-bright);
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .logic-rules-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+        .rule-chip { background: #0d131a; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--stone-border); color: #80deea; font-size: 0.85rem; }
+
+        .feedback-banner, .reward-banner {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .feedback-banner.error { background: #4a1212; border: 1px solid #ef5350; color: #ffcdd2; }
+        .feedback-banner.success { background: #1b4d24; border: 1px solid #66bb6a; color: #e8f5e9; }
+        .reward-banner { background: linear-gradient(180deg, #4a3800 0%, #1c1500 100%); border: 1px solid var(--gold-bright); color: var(--gold-bright); }
+
+        .game-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 15px; }
+
+        /* CONFETTI POPPER */
+        .confetti-piece {
+            position: fixed;
+            width: 8px;
+            height: 12px;
+            z-index: 9999;
+            pointer-events: none;
+            border-radius: 2px;
+            animation: fall 2.5s ease-out forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* BOTTOM MOBILE HUD */
+        .game-hud-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 60px;
+            background: linear-gradient(180deg, #1c2536 0%, #0a0f18 100%);
+            border-top: 3px solid var(--gold-bright);
+            display: flex; align-items: center; justify-content: space-around;
+            padding: 0 10px;
+            z-index: 100;
+        }
+        .hud-slot { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--stone-border); }
+        .hud-icon { font-size: 1.2rem; }
+        .hud-data { display: flex; flex-direction: column; }
+        .hud-label { font-size: 0.6rem; color: #90a4ae; font-weight: 700; }
+        .hud-data strong { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold-bright); }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="snowCanvas"></canvas>
+
+    <div class="app-container">
+
+        <!-- SCREEN 1: MOBILE INTRO -->
+        <section id="introScreen" class="screen">
+            <div class="game-logo-container">
+                <span class="logo-subtitle">A FANTASY LOGIC ADVENTURE</span>
+                <h1 class="logo-title">KNIGHT <span class="gold-text">&</span> KNAVE</h1>
+            </div>
+
+            <div class="main-menu-panel">
+                <button id="enterButton" class="fantasy-btn btn-primary-play">PLAY GAME</button>
+                <button type="button" id="audioToggleBtn" class="fantasy-btn btn-secondary-menu">🔊 AUDIO: ON</button>
+            </div>
+
+            <div class="battle-preview">
+                <div class="preview-card knight-preview">
+                    <div class="preview-icon">⚔️</div>
+                    <div class="preview-info">
+                        <h3>KNIGHT</h3>
+                        <p>ALWAYS TRUTH</p>
+                    </div>
+                </div>
+
+                <div class="preview-card knave-preview">
+                    <div class="preview-icon">☠️</div>
+                    <div class="preview-info">
+                        <h3>KNAVE</h3>
+                        <p>ALWAYS LIES</p>
+                    </div>
+                </div>
+
+                <div class="preview-card spy-preview">
+                    <div class="preview-icon">🕵️</div>
+                    <div class="preview-info">
+                        <h3>SPY</h3>
+                        <p>TRUTH OR LIE</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: PROFILE & ACHIEVEMENTS -->
+        <section id="welcomeScreen" class="screen hidden">
+            <div class="wood-panel">
+                <div class="wood-header">
+                    <h2>HERO PROFILE</h2>
+                </div>
+
+                <div class="wood-body">
+                    <form id="nameForm">
+                        <label for="playerName">DETECTIVE NAME</label>
+                        <input type="text" id="playerName" placeholder="Your Name..." maxlength="20" required>
+                        <button type="submit" class="fantasy-btn btn-green-action">QUEST MAP →</button>
+                    </form>
+
+                    <div class="achievements-box">
+                        <h3>🏅 ACHIEVEMENTS</h3>
+                        <div id="achievementsList" class="achievements-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: MAP -->
+        <section id="mapScreen" class="screen hidden">
+            <div class="wood-panel">
+                <div class="wood-header">
+                    <h2>KINGDOM MAP</h2>
+                </div>
+
+                <div class="map-nodes-container">
+                    <div class="map-node unlocked" id="node-0" onclick="selectLevelFromMap(0)">
+                        <div class="node-icon">🛡️</div>
+                        <span class="node-label">EASY TRIALS</span>
+                    </div>
+
+                    <div class="map-connector"></div>
+
+                    <div class="map-node locked" id="node-1" onclick="selectLevelFromMap(1)">
+                        <div class="node-icon">🔒</div>
+                        <span class="node-label">MEDIUM GUARDS</span>
+                    </div>
+
+                    <div class="map-connector"></div>
+
+                    <div class="map-node locked" id="node-2" onclick="selectLevelFromMap(2)">
+                        <div class="node-icon">🔒</div>
+                        <span class="node-label">HARD CONSPIRACY</span>
+                    </div>
+                </div>
+
+                <div style="padding: 10px; text-align: center;">
+                    <button type="button" id="backToProfileBtn" class="fantasy-btn btn-secondary-menu">↩ PROFILE</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: GAMEPLAY -->
+        <section id="gameScreen" class="screen hidden">
+            <main class="game-layout">
+                <div class="wood-panel board-panel">
+                    <div class="board-topbar">
+                        <button type="button" id="homeButton" class="icon-btn-back">🗺️</button>
+
+                        <div class="puzzle-title-area">
+                            <span id="difficultyBadge" class="difficulty-tag">EASY</span>
+                            <h2 id="puzzleTitle">Trial 1</h2>
+                        </div>
+
+                        <div class="progress-display">
+                            <span id="progressText">1/3</span>
+                        </div>
+                    </div>
+
+                    <div class="stone-inset-box">
+                        <p id="puzzleDescription">Identify each character as Knight, Liar, or Spy.</p>
+                    </div>
+
+                    <div id="charactersContainer" class="characters-grid"></div>
+
+                    <button type="button" id="toggleLabBtn" class="toggle-lab-btn">∑ PREDICATE LAB</button>
+
+                    <section id="predicateLabContainer" class="stone-inset-box hidden-lab">
+                        <div class="logic-rules-grid">
+                            <div class="rule-chip">Knight(x) ↔ True(Sx)</div>
+                            <div class="rule-chip">Liar(x) ↔ ¬True(Sx)</div>
+                            <div class="rule-chip">Spy(x) ↔ True ∨ False</div>
+                        </div>
+
+                        <button type="button" id="hintButton" class="fantasy-btn btn-secondary-menu">💡 SHOW HINT</button>
+                        <div id="hintBox" class="stone-inset-box hidden" style="color:#ffe082;"></div>
+                    </section>
+
+                    <div id="feedback" class="feedback-banner hidden"></div>
+                    <div id="rewardMessage" class="reward-banner hidden"></div>
+
+                    <div class="game-controls">
+                        <button type="button" id="checkButton" class="fantasy-btn btn-green-action">CHECK LOGIC ✓</button>
+                        <button type="button" id="resetButton" class="fantasy-btn btn-secondary-menu">RESET ↻</button>
+                        <button type="button" id="nextButton" class="fantasy-btn btn-green-action hidden">NEXT →</button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- BOTTOM MOBILE HUD -->
+            <footer class="game-hud-bar">
+                <div class="hud-slot">
+                    <span class="hud-icon">👤</span>
+                    <div class="hud-data">
+                        <strong id="playerGreeting">Hero</strong>
+                    </div>
+                </div>
+
+                <div class="hud-slot">
+                    <span class="hud-icon">💎</span>
+                    <div class="hud-data">
+                        <strong id="scoreLabel">0</strong>
+                    </div>
+                </div>
+
+                <div class="hud-slot">
+                    <span class="hud-icon">⭐</span>
+                    <div class="hud-data">
+                        <strong id="rankLabel">Rookie</strong>
+                    </div>
+                </div>
+            </footer>
+        </section>
+
+    </div>
+
+    <script>
+        "use strict";
+
+        /* AUDIO ENGINE */
+        let audioEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+
+                if (type === "click") {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.05);
+                    osc.start(now); osc.stop(now + 0.05);
+
+                } else if (type === "success") {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+
+                } else if (type === "error") {
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc1.type = "sawtooth"; osc2.type = "triangle";
+                    osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+                    osc1.frequency.setValueAtTime(220, now);
+                    osc2.frequency.setValueAtTime(207.65, now);
+                    osc1.frequency.setValueAtTime(146.83, now + 0.12);
+                    osc2.frequency.setValueAtTime(138.59, now + 0.12);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                    osc1.start(now); osc2.start(now);
+                    osc1.stop(now + 0.35); osc2.stop(now + 0.35);
+                }
+            } catch (e) {}
+        }
+
+        /* PUZZLES DATA */
+        const levels = [
+            {
+                name: "EASY",
+                puzzles: [
+                    { title: "Trial 1", description: "A guard speaks.", characters: [{ name: "Arin", statement: "2 + 2 = 4.", answer: "knight" }], hint: "2+2=4 is true.", explanation: "Arin speaks truth, so Arin is a Knight." },
+                    { title: "Trial 2", description: "A guard speaks astronomy.", characters: [{ name: "Borin", statement: "The Sun is a planet.", answer: "knave" }], hint: "The Sun is a star.", explanation: "Borin lies, making him a Knave." },
+                    { title: "Trial 3", description: "Determine Caren's role.", characters: [{ name: "Caren", statement: "I am a Knave.", answer: "knave" }], hint: "Knights can't say 'I am a Knave'.", explanation: "Caren lies, so Caren is a Knave." }
+                ]
+            },
+            {
+                name: "MEDIUM",
+                puzzles: [
+                    { title: "Two Guards", description: "Two linked guards.", characters: [{ name: "Arin", statement: "Borin is a Knave.", answer: "knave" }, { name: "Borin", statement: "Arin and I are different.", answer: "knight" }], hint: "Test Borin as Knight.", explanation: "Arin is Knave, Borin is Knight." },
+                    { title: "Royal Oath", description: "Two guardians.", characters: [{ name: "Celia", statement: "Daren is a Knight.", answer: "knight" }, { name: "Daren", statement: "Celia and I match.", answer: "knight" }], hint: "Both can be Knights.", explanation: "Both are Knights." },
+                    { title: "Spy Infiltration", description: "One is a Spy!", characters: [{ name: "Elara", statement: "Finn is a Knight.", answer: "spy" }, { name: "Finn", statement: "Elara is a Spy.", answer: "knight" }], hint: "Check Finn's statement.", explanation: "Finn is Knight, Elara is Spy." }
+                ]
+            },
+            {
+                name: "HARD",
+                puzzles: [
+                    { title: "Triple Trial", description: "Three guards stand.", characters: [{ name: "Arin", statement: "Borin is a Knave.", answer: "knave" }, { name: "Borin", statement: "Celia is a Knave.", answer: "knight" }, { name: "Celia", statement: "Arin and Borin match.", answer: "knave" }], hint: "Arin & Borin are opposite.", explanation: "Arin=Knave, Borin=Knight, Celia=Knave." },
+                    { title: "Spy Court", description: "1 Knight, 1 Knave, 1 Spy.", characters: [{ name: "Daren", statement: "I am a Spy.", answer: "spy" }, { name: "Elara", statement: "Daren tells truth.", answer: "knave" }, { name: "Finn", statement: "I am a Knight.", answer: "knight" }], hint: "Only Spy claims to be Spy.", explanation: "Daren=Spy, Elara=Knave, Finn=Knight." },
+                    { title: "Ultimate Verdict", description: "Circular claims.", characters: [{ name: "Gideon", statement: "Hala is a Knight.", answer: "knave" }, { name: "Hala", statement: "Ivar is a Knight.", answer: "knave" }, { name: "Ivar", statement: "Gideon and Hala match.", answer: "knave" }], hint: "Test all as Knaves.", explanation: "All three are Knaves!" }
+                ]
+            }
+        ];
+
+        /* GLOBAL STATE */
+        let playerName = "Hero";
+        let levelIndex = 0;
+        let puzzleIndex = 0;
+        let score = 0;
+        let hintUsed = false;
+        let solved = false;
+        let selections = [];
+        let unlockedLevels = [true, false, false];
+        let achievements = { noHint: false, champion: false };
+
+        /* DOM */
+        const introScreen = document.getElementById("introScreen");
+        const welcomeScreen = document.getElementById("welcomeScreen");
+        const mapScreen = document.getElementById("mapScreen");
+        const gameScreen = document.getElementById("gameScreen");
+
+        const enterButton = document.getElementById("enterButton");
+        const homeButton = document.getElementById("homeButton");
+        const backToProfileBtn = document.getElementById("backToProfileBtn");
+        const audioToggleBtn = document.getElementById("audioToggleBtn");
+        const toggleLabBtn = document.getElementById("toggleLabBtn");
+
+        const nameForm = document.getElementById("nameForm");
+        const playerNameInput = document.getElementById("playerName");
+        const playerGreeting = document.getElementById("playerGreeting");
+        const scoreLabel = document.getElementById("scoreLabel");
+        const rankLabel = document.getElementById("rankLabel");
+
+        const puzzleTitle = document.getElementById("puzzleTitle");
+        const puzzleDescription = document.getElementById("puzzleDescription");
+        const difficultyBadge = document.getElementById("difficultyBadge");
+        const progressText = document.getElementById("progressText");
+
+        const charactersContainer = document.getElementById("charactersContainer");
+        const feedback = document.getElementById("feedback");
+        const hintBox = document.getElementById("hintBox");
+        const rewardMessage = document.getElementById("rewardMessage");
+
+        const hintButton = document.getElementById("hintButton");
+        const checkButton = document.getElementById("checkButton");
+        const resetButton = document.getElementById("resetButton");
+        const nextButton = document.getElementById("nextButton");
+
+        function showScreen(screen) {
+            [introScreen, welcomeScreen, mapScreen, gameScreen].forEach(s => s.classList.add("hidden"));
+            screen.classList.remove("hidden");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        audioToggleBtn.addEventListener("click", () => {
+            audioEnabled = !audioEnabled;
+            audioToggleBtn.innerHTML = `🔊 AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
+            playSound("click");
+        });
+
+        enterButton.addEventListener("click", () => { playSound("click"); showScreen(welcomeScreen); renderAchievements(); });
+        backToProfileBtn.addEventListener("click", () => { playSound("click"); showScreen(welcomeScreen); });
+        homeButton.addEventListener("click", () => { playSound("click"); showScreen(mapScreen); updateMapNodes(); });
+
+        toggleLabBtn.addEventListener("click", () => {
+            const lab = document.getElementById('predicateLabContainer');
+            lab.classList.toggle('hidden-lab');
+        });
+
+        function renderAchievements() {
+            const list = document.getElementById("achievementsList");
+            list.innerHTML = `
+                <div class="achievement-badge ${achievements.noHint ? '' : 'locked'}">🧠 Pure Logic (No Hints)</div>
+                <div class="achievement-badge ${achievements.champion ? '' : 'locked'}">👑 Royal Champion</div>
+            `;
+        }
+
+        function updateMapNodes() {
+            for (let i = 0; i < 3; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (unlockedLevels[i]) {
+                    node.className = "map-node unlocked";
+                    node.querySelector(".node-icon").textContent = i === 0 ? "🛡️" : i === 1 ? "⚔️" : "👑";
+                } else {
+                    node.className = "map-node locked";
+                    node.querySelector(".node-icon").textContent = "🔒";
+                }
+            }
+        }
+
+        window.selectLevelFromMap = function(idx) {
+            if (!unlockedLevels[idx]) { playSound("error"); return; }
+            playSound("click");
+            levelIndex = idx; puzzleIndex = 0;
+            showScreen(gameScreen); renderPuzzle();
+        };
+
+        nameForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            playSound("click");
+            playerName = playerNameInput.value.trim() || "Hero";
+            playerGreeting.textContent = playerName;
+            showScreen(mapScreen); updateMapNodes();
+        });
+
+        function renderPuzzle() {
+            const puzzle = levels[levelIndex].puzzles[puzzleIndex];
+            solved = false; hintUsed = false;
+            selections = puzzle.characters.map(() => null);
+
+            difficultyBadge.textContent = levels[levelIndex].name;
+            puzzleTitle.textContent = puzzle.title;
+            puzzleDescription.textContent = puzzle.description;
+            progressText.textContent = `${puzzleIndex + 1}/${levels[levelIndex].puzzles.length}`;
+
+            feedback.className = "feedback-banner hidden";
+            hintBox.className = "stone-inset-box hidden";
+            rewardMessage.className = "reward-banner hidden";
+
+            checkButton.classList.remove("hidden");
+            hintButton.disabled = false;
+            nextButton.classList.add("hidden");
+
+            charactersContainer.replaceChildren();
+            puzzle.characters.forEach((char, idx) => createCharacterCard(char, idx));
+            updateHUD();
+        }
+
+        function createCharacterCard(character, index) {
+            const card = document.createElement("article");
+            card.className = "character-card";
+
+            const portrait = document.createElement("div");
+            portrait.className = "portrait-circle";
+            portrait.textContent = character.answer === "knight" ? "⚔️" : character.answer === "knave" ? "☠️" : "🕵️";
+
+            const idTag = document.createElement("div");
+            idTag.className = "character-id";
+            idTag.textContent = "GUARD " + String.fromCharCode(65 + index);
+
+            const name = document.createElement("h3");
+            name.textContent = character.name;
+
+            const speechBox = document.createElement("div");
+            speechBox.className = "speech-bubble";
+            speechBox.innerHTML = `<p>“${character.statement}”</p>`;
+
+            const btnContainer = document.createElement("div");
+            btnContainer.className = "verdict-buttons";
+
+            ["knight", "knave", "spy"].forEach(type => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "btn-choice";
+                btn.dataset.character = String(index);
+                btn.dataset.type = type;
+                btn.textContent = type === "knight" ? "⚔️ Knight" : type === "knave" ? "☠️ Liar" : "🕵️ Spy";
+                btn.addEventListener("click", () => selectRole(index, type));
+                btnContainer.appendChild(btn);
+            });
+
+            card.append(portrait, idTag, name, speechBox, btnContainer);
+            charactersContainer.appendChild(card);
+        }
+
+        function selectRole(index, type) {
+            if (solved) return;
+            playSound("click");
+            selections[index] = type;
+
+            const btns = charactersContainer.querySelectorAll(`.btn-choice[data-character="${index}"]`);
+            btns.forEach(btn => {
+                btn.classList.remove("selected-knight", "selected-knave", "selected-spy");
+                if (btn.dataset.type === type) btn.classList.add(`selected-${type}`);
+            });
+        }
+
+        function checkAnswer() {
+            if (solved) return;
+            if (selections.some(ans => ans === null)) {
+                playSound("error");
+                feedback.className = "feedback-banner error";
+                feedback.textContent = "⚠️ Assign all roles first!";
+                return;
+            }
+
+            const puzzle = levels[levelIndex].puzzles[puzzleIndex];
+            const correct = puzzle.characters.every((char, idx) => selections[idx] === char.answer);
+
+            if (!correct) {
+                playSound("error");
+                feedback.className = "feedback-banner error";
+                feedback.textContent = "❌ Incorrect verdict! Try again.";
+                return;
+            }
+
+            solved = true;
+            playSound("success");
+            triggerConfetti();
+
+            const pts = hintUsed ? 5 : 10;
+            if (!hintUsed) achievements.noHint = true;
+            score += pts;
+
+            feedback.className = "feedback-banner success";
+            feedback.textContent = `✓ Correct! ${puzzle.explanation}`;
+
+            rewardMessage.className = "reward-banner";
+            rewardMessage.textContent = `🎉 Earned +${pts} Points!`;
+
+            checkButton.classList.add("hidden");
+            hintButton.disabled = true;
+
+            if (puzzleIndex === levels[levelIndex].puzzles.length - 1) {
+                if (levelIndex < 2) unlockedLevels[levelIndex + 1] = true;
+                else achievements.champion = true;
+            }
+
+            updateHUD();
+            nextButton.classList.remove("hidden");
+            nextButton.onclick = nextPuzzle;
+        }
+
+        checkButton.addEventListener("click", checkAnswer);
+
+        hintButton.addEventListener("click", () => {
+            if (solved || hintUsed) return;
+            hintUsed = true;
+            hintBox.textContent = "💡 " + levels[levelIndex].puzzles[puzzleIndex].hint;
+            hintBox.classList.remove("hidden");
+            hintButton.disabled = true;
+        });
+
+        resetButton.addEventListener("click", () => {
+            if (solved) return;
+            selections = levels[levelIndex].puzzles[puzzleIndex].characters.map(() => null);
+            charactersContainer.querySelectorAll(".btn-choice").forEach(b => b.classList.remove("selected-knight", "selected-knave", "selected-spy"));
+            feedback.className = "feedback-banner hidden";
+        });
+
+        function triggerConfetti() {
+            const colors = ["#ffd700", "#5adb28", "#00bfff", "#ff9800", "#b026ff"];
+            for (let i = 0; i < 40; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti-piece";
+                confetti.style.left = Math.random() * 100 + "vw";
+                confetti.style.top = "-10px";
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (1.2 + Math.random() * 1.2) + "s";
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 2500);
+            }
+        }
+
+        function nextPuzzle() {
+            playSound("click");
+            if (puzzleIndex < levels[levelIndex].puzzles.length - 1) {
+                puzzleIndex++; renderPuzzle();
+            } else {
+                showScreen(mapScreen); updateMapNodes();
+            }
+        }
+
+        function initSnowCanvas() {
+            const canvas = document.getElementById("snowCanvas");
+            const ctx = canvas.getContext("2d");
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            const particles = Array.from({ length: 40 }, () => ({
+                x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 1, d: Math.random() * 1 + 0.5
+            }));
+
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+                ctx.beginPath();
+                particles.forEach(p => { ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true); });
+                ctx.fill();
+                particles.forEach(p => { p.y += p.d; if (p.y > height) { p.y = -10; p.x = Math.random() * width; } });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function updateHUD() {
+            scoreLabel.textContent = String(score);
+            let r = "Rookie";
+            if (score >= 25) r = "Apprentice";
+            if (score >= 50) r = "Master";
+            if (score >= 80) r = "Champion";
+            rankLabel.textContent = r;
+        }
+
+        initSnowCanvas();
+    </script>
+</body>
+</html>
